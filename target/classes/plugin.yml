@@ -1,0 +1,16 @@
+name: ZeMarketSystem
+main: de.db.market.MarketPlugin
+version: 1.0
+author: ZeBobbel
+
+commands:
+  market:
+    description: Main Command for Markets.
+    usage: /market <subcommand>
+    aliases: [m]
+  yes:
+    description: Bestaetigt eine Aktion.
+    usage: /yes
+  no:
+    description: Bricht eine Aktion ab.
+    usage: /no
