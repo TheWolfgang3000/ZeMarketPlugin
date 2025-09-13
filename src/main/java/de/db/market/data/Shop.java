@@ -2,18 +2,23 @@ package de.db.market.data;
 
 import org.bukkit.Location;
 
+/**
+ * A data class representing a single, rentable shop plot within a parent Market Region.
+ */
 public class Shop {
 
     private final String parentRegionName;
     private final String worldName;
-    private final int x1, z1;
-    private final int x2, z2;
-    private final int groundY;
+    private final int x1, z1; // Min coordinates
+    private final int x2, z2; // Max coordinates
+    private final int groundY; // The Y-level of the shop's floor, used for placing the sign.
 
     private String owner;
-    private long expirationTimestamp; // Zeitstempel in Millisekunden
+    private long expirationTimestamp; // The exact time the lease expires, in milliseconds.
 
-    // Konstruktor zum Erstellen eines neuen Shops aus dem Spiel
+    /**
+     * Constructor for creating a new shop from in-game selections.
+     */
     public Shop(String parentRegionName, Location pos1, Location pos2) {
         this.parentRegionName = parentRegionName;
         this.worldName = pos1.getWorld().getName();
@@ -23,10 +28,12 @@ public class Shop {
         this.z2 = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
         this.groundY = Math.min(pos1.getBlockY(), pos2.getBlockY());
         this.owner = null;
-        this.expirationTimestamp = 0; // 0 = Nicht vermietet
+        this.expirationTimestamp = 0; // 0 indicates the shop is not rented.
     }
 
-    // Konstruktor zum Laden eines Shops aus der Konfigurationsdatei
+    /**
+     * Constructor for loading a shop from the configuration file.
+     */
     public Shop(String parentRegionName, String worldName, int x1, int z1, int x2, int z2, int groundY, String owner, long expirationTimestamp) {
         this.parentRegionName = parentRegionName;
         this.worldName = worldName;
@@ -37,7 +44,7 @@ public class Shop {
         this.expirationTimestamp = expirationTimestamp;
     }
 
-    // --- Getter-Methoden ---
+    // --- Getters & Setters ---
     public String getParentRegionName() { return parentRegionName; }
     public String getWorldName() { return worldName; }
     public int getX1() { return x1; }
@@ -47,8 +54,6 @@ public class Shop {
     public int getGroundY() { return groundY; }
     public String getOwner() { return owner; }
     public long getExpirationTimestamp() { return expirationTimestamp; }
-
-    // --- Setter-Methoden ---
     public void setOwner(String owner) { this.owner = owner; }
     public void setExpirationTimestamp(long expirationTimestamp) { this.expirationTimestamp = expirationTimestamp; }
 }

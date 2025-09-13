@@ -5,12 +5,12 @@ author: ZeBobbel
 
 commands:
   market:
-    description: Hauptbefehl fuer das Marktsystem.
+    description: Main command for the market system.
     usage: /market <subcommand>
     aliases: [m]
   'yes':
-    description: Bestaetigt eine Aktion.
+    description: Confirms an action.
     usage: /yes
   'no':
-    description: Bricht eine Aktion ab.
+    description: Cancels an action.
     usage: /no

@@ -9,6 +9,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+/**
+ * Command executor for the /yes and /no commands, used to confirm or deny shop rentals.
+ */
 public class ConfirmationCommand implements CommandExecutor {
 
     private final MarketPlugin plugin;
@@ -27,33 +30,35 @@ public class ConfirmationCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (!confirmationManager.hasPendingConfirmation(player)) {
-            player.sendMessage("§c[MarketSystem] §fDu hast keine offene Anfrage.");
+            player.sendMessage("§c[MarketSystem] §fYou do not have a pending request.");
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("yes")) {
-            // FINALE ÄNDERUNG: Prüfen, ob der Spieler bereits einen Shop besitzt
+            // Check if the player already owns a shop before renting a new one.
             if (shopManager.hasShop(player.getName())) {
-                player.sendMessage("§c[MarketSystem] §fDu besitzt bereits einen Shop!");
-                confirmationManager.removePendingConfirmation(player); // Anfrage schließen
+                player.sendMessage("§c[MarketSystem] §fYou already own a shop!");
+                confirmationManager.removePendingConfirmation(player);
                 return true;
             }
 
             Shop shop = confirmationManager.getPendingShop(player);
             shop.setOwner(player.getName());
 
-            // Zurücksetzen auf 30 Tage
+            // Set the lease duration to 30 days.
             long durationMillis = 30L * 24L * 60L * 60L * 1000L;
             shop.setExpirationTimestamp(System.currentTimeMillis() + durationMillis);
 
             shopManager.saveShops();
             shopManager.updateSign(shop);
 
-            player.sendMessage("§a[MarketSystem] §fDu hast den Shop fuer 30 Tage gemietet!");
+            player.sendMessage("§a[MarketSystem] §fYou have successfully rented the shop for 30 days!");
         } else {
-            player.sendMessage("§a[MarketSystem] §fDu hast den Mietvorgang abgebrochen.");
+            // This block handles the /no command.
+            player.sendMessage("§a[MarketSystem] §fYou have cancelled the rental process.");
         }
 
+        // Always remove the pending confirmation after /yes or /no is used.
         confirmationManager.removePendingConfirmation(player);
         return true;
     }

@@ -10,6 +10,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockPlaceEvent;
 
+/**
+ * Listens for block break and place events to enforce protection rules
+ * in market regions and owned shops.
+ */
 public class PlayerProtectionListener extends BlockListener {
 
     private final RegionManager regionManager;
@@ -29,13 +33,14 @@ public class PlayerProtectionListener extends BlockListener {
         if (regionManager.isLocationInMarketRegion(location)) {
             Shop shop = shopManager.getShopAt(location);
             if (shop != null) {
+                // Allow building if the player is the owner of this shop.
                 if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(player.getName())) {
-                    return; // Besitzer darf in seinem Shop bauen
+                    return;
                 }
             }
-            // Ansonsten ist es verboten
+            // If not the owner or not in a shop plot, cancel the event.
             event.setCancelled(true);
-            player.sendMessage("§c[MarketSystem] §fDu kannst hier nicht bauen!");
+            player.sendMessage("§c[MarketSystem] §fYou cannot build here!");
         }
     }
 
@@ -44,36 +49,35 @@ public class PlayerProtectionListener extends BlockListener {
         Player player = event.getPlayer();
         Location location = event.getBlock().getLocation();
 
-        // Schutz für das Schild
+        // First, check for special protected blocks (signs and their bases).
         Material type = event.getBlock().getType();
         if (type == Material.SIGN_POST || type == Material.WALL_SIGN) {
             if (shopManager.getShopAt(location) != null) {
-                player.sendMessage("§c[MarketSystem] §fDieses Schild kann nicht zerstoert werden.");
+                player.sendMessage("§c[MarketSystem] §fThis sign cannot be destroyed.");
                 event.setCancelled(true);
                 return;
             }
         }
-
-        // Schutz für den Steinblock
         if (shopManager.isShopBaseBlock(location)) {
-            player.sendMessage("§c[MarketSystem] §fDieser Block gehoert zu einem Shop und kann nicht zerstoert werden.");
+            player.sendMessage("§c[MarketSystem] §fThis block is part of a shop and cannot be destroyed.");
             event.setCancelled(true);
             return;
         }
 
-        // Allgemeiner Bauschutz
+        // General build protection for non-OP players.
         if (player.isOp()) return;
 
         if (regionManager.isLocationInMarketRegion(location)) {
             Shop shop = shopManager.getShopAt(location);
             if (shop != null) {
+                // Allow breaking blocks if the player is the owner.
                 if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(player.getName())) {
-                    return; // Besitzer darf in seinem Shop abbauen
+                    return;
                 }
             }
-            // Ansonsten ist es verboten
+            // If not the owner or not in a shop plot, cancel the event.
             event.setCancelled(true);
-            player.sendMessage("§c[MarketSystem] §fDu kannst hier nichts abbauen!");
+            player.sendMessage("§c[MarketSystem] §fYou cannot break blocks here!");
         }
     }
 }

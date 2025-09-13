@@ -8,17 +8,18 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.util.config.Configuration;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+/**
+ * Manages the loading, saving, and lifecycle of all Shop plots.
+ */
 public class ShopManager {
 
     private final MarketPlugin plugin;
-    private final List<Shop> shops = new ArrayList<>();
+    private final List<Shop> shops = new ArrayList<>(); // Using a List as shops don't have unique names.
     private final File configFile;
     private final Configuration config;
 
@@ -38,10 +39,32 @@ public class ShopManager {
         saveShops();
     }
 
+    /**
+     * Returns a defensive copy of the shops list.
+     * @return A list of all shops.
+     */
     public List<Shop> getAllShops() {
         return new ArrayList<>(shops);
     }
 
+    /**
+     * Checks if a player already owns a shop.
+     * @param playerName The name of the player to check.
+     * @return True if the player owns a shop, false otherwise.
+     */
+    public boolean hasShop(String playerName) {
+        for (Shop shop : shops) {
+            if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(playerName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Saves all shops to the marketshops.yml file.
+     * Shops are saved with a numerical index as their key.
+     */
     public void saveShops() {
         config.removeProperty("shops");
         int shopId = 0;
@@ -61,6 +84,9 @@ public class ShopManager {
         config.save();
     }
 
+    /**
+     * Loads all shops from the marketshops.yml file into memory.
+     */
     public void loadShops() {
         shops.clear();
         List<String> shopKeys = config.getKeys("shops");
@@ -81,9 +107,14 @@ public class ShopManager {
             Shop shop = new Shop(region, world, x1, z1, x2, z2, groundY, owner, expiration);
             shops.add(shop);
         }
-        System.out.println("[MarketSystem] " + shops.size() + " Shops geladen.");
+        System.out.println("[MarketSystem] Loaded " + shops.size() + " shops.");
     }
 
+    /**
+     * Retrieves the Shop object at a specific location.
+     * @param location The location to check.
+     * @return The Shop object, or null if no shop is found.
+     */
     public Shop getShopAt(Location location) {
         for (Shop shop : shops) {
             if (!shop.getWorldName().equals(location.getWorld().getName())) continue;
@@ -95,6 +126,11 @@ public class ShopManager {
         return null;
     }
 
+    /**
+     * Checks if a block is the stone base directly under a shop sign.
+     * @param location The location of the block to check.
+     * @return True if it's a shop base block.
+     */
     public boolean isShopBaseBlock(Location location) {
         for (Shop shop : shops) {
             if (shop.getWorldName().equals(location.getWorld().getName()) &&
@@ -107,18 +143,25 @@ public class ShopManager {
         return false;
     }
 
+    /**
+     * Updates the text on a shop's sign to reflect its current state (owner, days left, or for sale).
+     * @param shop The shop whose sign should be updated.
+     */
     public void updateSign(Shop shop) {
-        Block signBlock = plugin.getServer().getWorld(shop.getWorldName()).getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
+        World world = plugin.getServer().getWorld(shop.getWorldName());
+        if (world == null) return;
+        Block signBlock = world.getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
         if (signBlock.getType() != Material.SIGN_POST && signBlock.getType() != Material.WALL_SIGN) return;
 
         Sign sign = (Sign) signBlock.getState();
         if (shop.getOwner() != null) {
             long remainingMillis = shop.getExpirationTimestamp() - System.currentTimeMillis();
-            long remainingDays = Math.max(0, TimeUnit.MILLISECONDS.toDays(remainingMillis));
+            // Using manual calculation as TimeUnit is not available in this old Java version.
+            long remainingDays = Math.max(0, remainingMillis / (1000L * 60 * 60 * 24));
 
             sign.setLine(0, "[Market]");
             sign.setLine(1, "§c" + shop.getOwner());
-            sign.setLine(2, "Tage: " + remainingDays);
+            sign.setLine(2, "Days Left: " + remainingDays);
             sign.setLine(3, "");
         } else {
             sign.setLine(0, "[Market]");
@@ -129,17 +172,18 @@ public class ShopManager {
         sign.update();
     }
 
-    // Ersetze diese Methode in ShopManager.java
+    /**
+     * Resets a shop to its original state when a lease expires.
+     * Clears the area, removes owner, and updates the sign.
+     * @param shop The shop to reset.
+     */
     public void resetShop(Shop shop) {
-        // Besitzer und Ablaufdatum zurücksetzen
         shop.setOwner(null);
         shop.setExpirationTimestamp(0);
 
-        // Welt-Objekt holen, um es nicht immer wieder neu zu holen
         World world = plugin.getServer().getWorld(shop.getWorldName());
         if (world == null) return;
 
-        // Bereich 10 Blöcke hoch leeren
         for (int x = shop.getX1(); x <= shop.getX2(); x++) {
             for (int z = shop.getZ1(); z <= shop.getZ2(); z++) {
                 for (int y = shop.getGroundY(); y < shop.getGroundY() + 10; y++) {
@@ -149,40 +193,29 @@ public class ShopManager {
             }
         }
 
-        // Stein unter dem zukünftigen Schild platzieren
-        Block baseBlock = world.getBlockAt(shop.getX1(), shop.getGroundY() - 1, shop.getZ1());
-        baseBlock.setType(Material.STONE);
+        world.getBlockAt(shop.getX1(), shop.getGroundY() - 1, shop.getZ1()).setType(Material.STONE);
+        world.getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1()).setType(Material.SIGN_POST);
 
-        // KORREKTUR: Das Schild explizit neu erstellen, nachdem der Bereich geleert wurde
-        Block signBlock = world.getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
-        signBlock.setType(Material.SIGN_POST);
-
-        // Jetzt das neu erstellte Schild aktualisieren (setzt es auf "For Sale")
         updateSign(shop);
-
-        // Die Änderungen in der Datei speichern
         saveShops();
     }
 
-    // --- NEUE LÖSCH-METHODEN ---
-
+    /**
+     * Removes a shop completely from the world and the config.
+     * Used by the /market shop delete command.
+     * @param shop The shop to remove.
+     */
     public void removeShop(Shop shop) {
         removeShopBlocks(shop);
         shops.remove(shop);
         saveShops();
     }
 
-    // Füge diese Methode zu ShopManager.java hinzu
-    public boolean hasShop(String playerName) {
-        for (Shop shop : shops) {
-            // Prüfen, ob der Shop einen Besitzer hat und ob der Name übereinstimmt
-            if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(playerName)) {
-                return true; // Ja, der Spieler hat bereits einen Shop
-            }
-        }
-        return false; // Nein, der Spieler hat noch keinen Shop
-    }
-
+    /**
+     * Removes all shops that are located within a given market region.
+     * Used when a parent region is deleted.
+     * @param regionName The name of the parent region.
+     */
     public void removeShopsInRegion(String regionName) {
         Iterator<Shop> iterator = shops.iterator();
         boolean changed = false;
@@ -199,6 +232,10 @@ public class ShopManager {
         }
     }
 
+    /**
+     * Helper method to physically remove a shop's sign and base block from the world.
+     * @param shop The shop whose blocks should be removed.
+     */
     private void removeShopBlocks(Shop shop) {
         World world = plugin.getServer().getWorld(shop.getWorldName());
         if (world == null) return;
