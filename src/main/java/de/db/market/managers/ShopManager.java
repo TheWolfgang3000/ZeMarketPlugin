@@ -129,24 +129,38 @@ public class ShopManager {
         sign.update();
     }
 
+    // Ersetze diese Methode in ShopManager.java
     public void resetShop(Shop shop) {
+        // Besitzer und Ablaufdatum zurücksetzen
         shop.setOwner(null);
         shop.setExpirationTimestamp(0);
 
-        Location corner = new Location(plugin.getServer().getWorld(shop.getWorldName()), shop.getX1(), shop.getGroundY(), shop.getZ1());
+        // Welt-Objekt holen, um es nicht immer wieder neu zu holen
+        World world = plugin.getServer().getWorld(shop.getWorldName());
+        if (world == null) return;
+
+        // Bereich 10 Blöcke hoch leeren
         for (int x = shop.getX1(); x <= shop.getX2(); x++) {
             for (int z = shop.getZ1(); z <= shop.getZ2(); z++) {
                 for (int y = shop.getGroundY(); y < shop.getGroundY() + 10; y++) {
                     if (y > 127) break;
-                    corner.getWorld().getBlockAt(x, y, z).setType(Material.AIR);
+                    world.getBlockAt(x, y, z).setType(Material.AIR);
                 }
             }
         }
 
-        Block baseBlock = corner.getWorld().getBlockAt(shop.getX1(), shop.getGroundY() - 1, shop.getZ1());
+        // Stein unter dem zukünftigen Schild platzieren
+        Block baseBlock = world.getBlockAt(shop.getX1(), shop.getGroundY() - 1, shop.getZ1());
         baseBlock.setType(Material.STONE);
 
+        // KORREKTUR: Das Schild explizit neu erstellen, nachdem der Bereich geleert wurde
+        Block signBlock = world.getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
+        signBlock.setType(Material.SIGN_POST);
+
+        // Jetzt das neu erstellte Schild aktualisieren (setzt es auf "For Sale")
         updateSign(shop);
+
+        // Die Änderungen in der Datei speichern
         saveShops();
     }
 
@@ -156,6 +170,17 @@ public class ShopManager {
         removeShopBlocks(shop);
         shops.remove(shop);
         saveShops();
+    }
+
+    // Füge diese Methode zu ShopManager.java hinzu
+    public boolean hasShop(String playerName) {
+        for (Shop shop : shops) {
+            // Prüfen, ob der Shop einen Besitzer hat und ob der Name übereinstimmt
+            if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(playerName)) {
+                return true; // Ja, der Spieler hat bereits einen Shop
+            }
+        }
+        return false; // Nein, der Spieler hat noch keinen Shop
     }
 
     public void removeShopsInRegion(String regionName) {

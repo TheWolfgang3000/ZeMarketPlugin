@@ -1,5 +1,6 @@
 package de.db.market.commands;
 
+import de.db.market.MarketPlugin;
 import de.db.market.data.Shop;
 import de.db.market.managers.ConfirmationManager;
 import de.db.market.managers.ShopManager;
@@ -8,14 +9,14 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.concurrent.TimeUnit;
-
 public class ConfirmationCommand implements CommandExecutor {
 
+    private final MarketPlugin plugin;
     private final ConfirmationManager confirmationManager;
     private final ShopManager shopManager;
 
-    public ConfirmationCommand(ConfirmationManager confirmationManager, ShopManager shopManager) {
+    public ConfirmationCommand(MarketPlugin plugin, ConfirmationManager confirmationManager, ShopManager shopManager) {
+        this.plugin = plugin;
         this.confirmationManager = confirmationManager;
         this.shopManager = shopManager;
     }
@@ -30,13 +31,19 @@ public class ConfirmationCommand implements CommandExecutor {
             return true;
         }
 
-        Shop shop = confirmationManager.getPendingShop(player);
-
         if (command.getName().equalsIgnoreCase("yes")) {
+            // FINALE ÄNDERUNG: Prüfen, ob der Spieler bereits einen Shop besitzt
+            if (shopManager.hasShop(player.getName())) {
+                player.sendMessage("§c[MarketSystem] §fDu besitzt bereits einen Shop!");
+                confirmationManager.removePendingConfirmation(player); // Anfrage schließen
+                return true;
+            }
+
+            Shop shop = confirmationManager.getPendingShop(player);
             shop.setOwner(player.getName());
 
-            // Setze den Timer auf 30 Tage in der Zukunft
-            long durationMillis = TimeUnit.MINUTES.toMillis(2);
+            // Zurücksetzen auf 30 Tage
+            long durationMillis = 30L * 24L * 60L * 60L * 1000L;
             shop.setExpirationTimestamp(System.currentTimeMillis() + durationMillis);
 
             shopManager.saveShops();

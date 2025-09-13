@@ -28,7 +28,7 @@ public class MarketPlugin extends JavaPlugin {
         this.confirmationManager = new ConfirmationManager(this);
 
         getCommand("market").setExecutor(new MarketCommand(this, regionManager, shopManager));
-        ConfirmationCommand confCommand = new ConfirmationCommand(confirmationManager, shopManager);
+        ConfirmationCommand confCommand = new ConfirmationCommand(this, confirmationManager, shopManager); // Wichtig: 'this' übergeben
         getCommand("yes").setExecutor(confCommand);
         getCommand("no").setExecutor(confCommand);
 
@@ -43,23 +43,25 @@ public class MarketPlugin extends JavaPlugin {
         pm.registerEvent(Event.Type.BLOCK_PLACE, protectionListener, Event.Priority.Normal, this);
         pm.registerEvent(Event.Type.BLOCK_BREAK, protectionListener, Event.Priority.Normal, this);
 
-        PlayerInteractListener interactListener = new PlayerInteractListener(shopManager, confirmationManager);
+        PlayerInteractListener interactListener = new PlayerInteractListener(this, shopManager, confirmationManager); // Wichtig: 'this' übergeben
         pm.registerEvent(Event.Type.PLAYER_INTERACT, interactListener, Event.Priority.Normal, this);
     }
 
     private void startExpirationTask() {
-        // Starte einen Task, der alle 5 Minuten laeuft
+        // Starte einen Task, der alle 30 Sekunden läuft (zum Testen)
         getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
             @Override
             public void run() {
+                // Wir erstellen eine Kopie der Liste, um sie sicher zu durchlaufen
                 for (Shop shop : shopManager.getAllShops()) {
-                    if (shop.getOwner() != null && System.currentTimeMillis() > shop.getExpirationTimestamp()) {
+                    // Prüfen, ob der Shop einen Besitzer hat UND die Zeit abgelaufen ist
+                    if (shop.getOwner() != null && shop.getExpirationTimestamp() != 0 && System.currentTimeMillis() >= shop.getExpirationTimestamp()) {
                         System.out.println("[MarketSystem] Shop von " + shop.getOwner() + " ist abgelaufen. Wird zurueckgesetzt.");
                         shopManager.resetShop(shop);
                     }
                 }
             }
-        }, 20L * 10, 20L * 60 * 5); // Start nach 10s, dann alle 5min
+        }, 20L * 60, 20L * 60 * 5); // Start nach 1 Minute, dann alle 5 Minuten
     }
 
     @Override

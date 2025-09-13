@@ -22,10 +22,23 @@ public class PlayerProtectionListener extends BlockListener {
 
     @Override
     public void onBlockPlace(BlockPlaceEvent event) {
-        handleBuildEvent(event.getPlayer(), event.getBlock().getLocation(), event);
+        Player player = event.getPlayer();
+        if (player.isOp()) return;
+
+        Location location = event.getBlock().getLocation();
+        if (regionManager.isLocationInMarketRegion(location)) {
+            Shop shop = shopManager.getShopAt(location);
+            if (shop != null) {
+                if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(player.getName())) {
+                    return; // Besitzer darf in seinem Shop bauen
+                }
+            }
+            // Ansonsten ist es verboten
+            event.setCancelled(true);
+            player.sendMessage("§c[MarketSystem] §fDu kannst hier nicht bauen!");
+        }
     }
 
-    // Ersetze diese Methode in PlayerProtectionListener.java
     @Override
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
@@ -41,28 +54,26 @@ public class PlayerProtectionListener extends BlockListener {
             }
         }
 
-        // NEU: Schutz für den Steinblock darunter
+        // Schutz für den Steinblock
         if (shopManager.isShopBaseBlock(location)) {
             player.sendMessage("§c[MarketSystem] §fDieser Block gehoert zu einem Shop und kann nicht zerstoert werden.");
             event.setCancelled(true);
             return;
         }
 
-        handleBuildEvent(player, location, event);
-    }
-
-    private void handleBuildEvent(Player player, Location location, org.bukkit.event.Cancellable event) {
+        // Allgemeiner Bauschutz
         if (player.isOp()) return;
 
         if (regionManager.isLocationInMarketRegion(location)) {
             Shop shop = shopManager.getShopAt(location);
             if (shop != null) {
                 if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(player.getName())) {
-                    return;
+                    return; // Besitzer darf in seinem Shop abbauen
                 }
             }
+            // Ansonsten ist es verboten
             event.setCancelled(true);
-            player.sendMessage("§c[MarketSystem] §fDu kannst hier nicht bauen!");
+            player.sendMessage("§c[MarketSystem] §fDu kannst hier nichts abbauen!");
         }
     }
 }
