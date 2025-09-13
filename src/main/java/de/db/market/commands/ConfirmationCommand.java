@@ -3,13 +3,12 @@ package de.db.market.commands;
 import de.db.market.data.Shop;
 import de.db.market.managers.ConfirmationManager;
 import de.db.market.managers.ShopManager;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.concurrent.TimeUnit;
 
 public class ConfirmationCommand implements CommandExecutor {
 
@@ -34,21 +33,16 @@ public class ConfirmationCommand implements CommandExecutor {
         Shop shop = confirmationManager.getPendingShop(player);
 
         if (command.getName().equalsIgnoreCase("yes")) {
-            // Logik fuer /yes
             shop.setOwner(player.getName());
-            shopManager.saveShops(); // Wichtig: Aenderung speichern
 
-            // Schild aktualisieren
-            Block signBlock = player.getWorld().getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
+            // Setze den Timer auf 30 Tage in der Zukunft
+            long durationMillis = TimeUnit.MINUTES.toMillis(2);
+            shop.setExpirationTimestamp(System.currentTimeMillis() + durationMillis);
 
-            if (signBlock.getType() == Material.SIGN_POST || signBlock.getType() == Material.WALL_SIGN) {
-                Sign sign = (Sign) signBlock.getState();
-                sign.setLine(1, "§c" + player.getName());
-                sign.setLine(2, "Besetzt");
-                sign.update();
-            }
+            shopManager.saveShops();
+            shopManager.updateSign(shop);
 
-            player.sendMessage("§a[MarketSystem] §fDu hast den Shop erfolgreich gemietet!");
+            player.sendMessage("§a[MarketSystem] §fDu hast den Shop fuer 30 Tage gemietet!");
         } else {
             player.sendMessage("§a[MarketSystem] §fDu hast den Mietvorgang abgebrochen.");
         }

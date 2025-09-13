@@ -6,36 +6,35 @@ public class Shop {
 
     private final String parentRegionName;
     private final String worldName;
-    private final int x1, z1; // Kleinere Koordinaten
-    private final int x2, z2; // Groessere Koordinaten
-    private final int groundY; // Wir merken uns nur die Bodenhoehe fuer das Schild etc.
+    private final int x1, z1;
+    private final int x2, z2;
+    private final int groundY;
 
     private String owner;
+    private long expirationTimestamp; // Zeitstempel in Millisekunden
 
-    // Konstruktor zum Erstellen eines neuen Shops
+    // Konstruktor zum Erstellen eines neuen Shops aus dem Spiel
     public Shop(String parentRegionName, Location pos1, Location pos2) {
         this.parentRegionName = parentRegionName;
         this.worldName = pos1.getWorld().getName();
-
         this.x1 = Math.min(pos1.getBlockX(), pos2.getBlockX());
         this.z1 = Math.min(pos1.getBlockZ(), pos2.getBlockZ());
         this.x2 = Math.max(pos1.getBlockX(), pos2.getBlockX());
         this.z2 = Math.max(pos1.getBlockZ(), pos2.getBlockZ());
-
-        // Wir nehmen die niedrigere der beiden Y-Koordinaten als "Boden"
         this.groundY = Math.min(pos1.getBlockY(), pos2.getBlockY());
-
         this.owner = null;
+        this.expirationTimestamp = 0; // 0 = Nicht vermietet
     }
 
     // Konstruktor zum Laden eines Shops aus der Konfigurationsdatei
-    public Shop(String parentRegionName, String worldName, int x1, int z1, int x2, int z2, int groundY, String owner) {
+    public Shop(String parentRegionName, String worldName, int x1, int z1, int x2, int z2, int groundY, String owner, long expirationTimestamp) {
         this.parentRegionName = parentRegionName;
         this.worldName = worldName;
         this.x1 = x1; this.z1 = z1;
         this.x2 = x2; this.z2 = z2;
         this.groundY = groundY;
         this.owner = owner;
+        this.expirationTimestamp = expirationTimestamp;
     }
 
     // --- Getter-Methoden ---
@@ -47,7 +46,9 @@ public class Shop {
     public int getZ2() { return z2; }
     public int getGroundY() { return groundY; }
     public String getOwner() { return owner; }
+    public long getExpirationTimestamp() { return expirationTimestamp; }
 
     // --- Setter-Methoden ---
     public void setOwner(String owner) { this.owner = owner; }
+    public void setExpirationTimestamp(long expirationTimestamp) { this.expirationTimestamp = expirationTimestamp; }
 }

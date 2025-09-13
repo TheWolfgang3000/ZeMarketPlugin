@@ -10,6 +10,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerListener;
 
+import java.util.concurrent.TimeUnit;
+
 public class PlayerInteractListener extends PlayerListener {
 
     private final ShopManager shopManager;
@@ -22,21 +24,31 @@ public class PlayerInteractListener extends PlayerListener {
 
     @Override
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // Wir interessieren uns nur fuer Rechtsklicks auf Bloecke
         if (!event.getAction().name().equals("RIGHT_CLICK_BLOCK")) return;
 
         Block clickedBlock = event.getClickedBlock();
         Player player = event.getPlayer();
 
-        // Pruefen, ob der Block ein Schild ist
         if (clickedBlock.getType() == Material.SIGN_POST || clickedBlock.getType() == Material.WALL_SIGN) {
+            Shop shop = shopManager.getShopAt(clickedBlock.getLocation());
+            if (shop == null) return;
+
             Sign sign = (Sign) clickedBlock.getState();
-            // Pruefen, ob es unser Marktschild ist und zum Verkauf steht
-            if (sign.getLine(0).equalsIgnoreCase("[Market]") && sign.getLine(1).contains("For Sale")) {
-                Shop shop = shopManager.getShopAt(clickedBlock.getLocation());
-                if (shop != null) {
-                    confirmationManager.addPendingConfirmation(player, shop);
-                }
+            if (!sign.getLine(0).equalsIgnoreCase("[Market]")) return;
+
+            // Fall 1: Der Shop ist frei -> Mietprozess starten
+            if (shop.getOwner() == null) {
+                confirmationManager.addPendingConfirmation(player, shop);
+                return;
+            }
+
+            // Fall 2: Der Spieler ist der Besitzer -> Miete verlaengern
+            if (shop.getOwner().equalsIgnoreCase(player.getName())) {
+                long durationMillis = TimeUnit.MINUTES.toMillis(2);
+                shop.setExpirationTimestamp(System.currentTimeMillis() + durationMillis);
+                shopManager.saveShops();
+                shopManager.updateSign(shop);
+                player.sendMessage("§a[MarketSystem] §fDu hast deinen Shop um 30 Tage verlaengert!");
             }
         }
     }

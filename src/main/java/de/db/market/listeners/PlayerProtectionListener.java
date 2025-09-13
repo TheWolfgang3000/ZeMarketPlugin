@@ -4,6 +4,7 @@ import de.db.market.data.Shop;
 import de.db.market.managers.RegionManager;
 import de.db.market.managers.ShopManager;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockListener;
@@ -21,29 +22,45 @@ public class PlayerProtectionListener extends BlockListener {
 
     @Override
     public void onBlockPlace(BlockPlaceEvent event) {
-        handleBlockEvent(event.getPlayer(), event.getBlock().getLocation(), event);
+        handleBuildEvent(event.getPlayer(), event.getBlock().getLocation(), event);
     }
 
+    // Ersetze diese Methode in PlayerProtectionListener.java
     @Override
     public void onBlockBreak(BlockBreakEvent event) {
-        handleBlockEvent(event.getPlayer(), event.getBlock().getLocation(), event);
+        Player player = event.getPlayer();
+        Location location = event.getBlock().getLocation();
+
+        // Schutz für das Schild
+        Material type = event.getBlock().getType();
+        if (type == Material.SIGN_POST || type == Material.WALL_SIGN) {
+            if (shopManager.getShopAt(location) != null) {
+                player.sendMessage("§c[MarketSystem] §fDieses Schild kann nicht zerstoert werden.");
+                event.setCancelled(true);
+                return;
+            }
+        }
+
+        // NEU: Schutz für den Steinblock darunter
+        if (shopManager.isShopBaseBlock(location)) {
+            player.sendMessage("§c[MarketSystem] §fDieser Block gehoert zu einem Shop und kann nicht zerstoert werden.");
+            event.setCancelled(true);
+            return;
+        }
+
+        handleBuildEvent(player, location, event);
     }
 
-    private void handleBlockEvent(Player player, Location location, org.bukkit.event.Cancellable event) {
+    private void handleBuildEvent(Player player, Location location, org.bukkit.event.Cancellable event) {
         if (player.isOp()) return;
 
-        // Ist der Spieler in einer grossen Marktregion?
         if (regionManager.isLocationInMarketRegion(location)) {
-            // Ja. Ist er zusaetzlich in einem kleinen Shop?
             Shop shop = shopManager.getShopAt(location);
             if (shop != null) {
-                // Ja. Ist er der Besitzer dieses Shops?
                 if (shop.getOwner() != null && shop.getOwner().equalsIgnoreCase(player.getName())) {
-                    // Ja. Er darf bauen.
                     return;
                 }
             }
-            // Ansonsten: Er ist in der grossen Region, aber nicht in seinem Shop -> verboten.
             event.setCancelled(true);
             player.sendMessage("§c[MarketSystem] §fDu kannst hier nicht bauen!");
         }

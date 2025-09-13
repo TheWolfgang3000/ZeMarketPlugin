@@ -2,6 +2,7 @@ package de.db.market;
 
 import de.db.market.commands.ConfirmationCommand;
 import de.db.market.commands.MarketCommand;
+import de.db.market.data.Shop;
 import de.db.market.listeners.PlayerInteractListener;
 import de.db.market.listeners.PlayerProtectionListener;
 import de.db.market.managers.ConfirmationManager;
@@ -22,18 +23,17 @@ public class MarketPlugin extends JavaPlugin {
         System.out.println("[MarketSystem] Plugin wird aktiviert!");
         if (!getDataFolder().exists()) { getDataFolder().mkdir(); }
 
-        // Manager initialisieren
         this.regionManager = new RegionManager(this);
         this.shopManager = new ShopManager(this);
         this.confirmationManager = new ConfirmationManager(this);
 
-        // Befehle registrieren
         getCommand("market").setExecutor(new MarketCommand(this, regionManager, shopManager));
         ConfirmationCommand confCommand = new ConfirmationCommand(confirmationManager, shopManager);
         getCommand("yes").setExecutor(confCommand);
         getCommand("no").setExecutor(confCommand);
 
         registerListeners();
+        startExpirationTask();
     }
 
     private void registerListeners() {
@@ -45,6 +45,21 @@ public class MarketPlugin extends JavaPlugin {
 
         PlayerInteractListener interactListener = new PlayerInteractListener(shopManager, confirmationManager);
         pm.registerEvent(Event.Type.PLAYER_INTERACT, interactListener, Event.Priority.Normal, this);
+    }
+
+    private void startExpirationTask() {
+        // Starte einen Task, der alle 5 Minuten laeuft
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                for (Shop shop : shopManager.getAllShops()) {
+                    if (shop.getOwner() != null && System.currentTimeMillis() > shop.getExpirationTimestamp()) {
+                        System.out.println("[MarketSystem] Shop von " + shop.getOwner() + " ist abgelaufen. Wird zurueckgesetzt.");
+                        shopManager.resetShop(shop);
+                    }
+                }
+            }
+        }, 20L * 10, 20L * 60 * 5); // Start nach 10s, dann alle 5min
     }
 
     @Override
