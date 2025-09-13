@@ -8,9 +8,9 @@ commands:
     description: Hauptbefehl fuer das Marktsystem.
     usage: /market <subcommand>
     aliases: [m]
-  yes:
+  'yes':
     description: Bestaetigt eine Aktion.
     usage: /yes
-  no:
+  'no':
     description: Bricht eine Aktion ab.
     usage: /no

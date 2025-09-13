@@ -39,7 +39,8 @@ public class ConfirmationCommand implements CommandExecutor {
             shopManager.saveShops(); // Wichtig: Aenderung speichern
 
             // Schild aktualisieren
-            Block signBlock = player.getWorld().getBlockAt(shop.getX1(), shop.getY1(), shop.getZ1());
+            Block signBlock = player.getWorld().getBlockAt(shop.getX1(), shop.getGroundY(), shop.getZ1());
+
             if (signBlock.getType() == Material.SIGN_POST || signBlock.getType() == Material.WALL_SIGN) {
                 Sign sign = (Sign) signBlock.getState();
                 sign.setLine(1, "§c" + player.getName());
@@ -49,7 +50,6 @@ public class ConfirmationCommand implements CommandExecutor {
 
             player.sendMessage("§a[MarketSystem] §fDu hast den Shop erfolgreich gemietet!");
         } else {
-            // Logik fuer /no
             player.sendMessage("§a[MarketSystem] §fDu hast den Mietvorgang abgebrochen.");
         }
 
