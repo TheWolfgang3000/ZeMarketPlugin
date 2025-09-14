@@ -1,77 +1,71 @@
-ZeMarketPlugin:
+ZeMarketSystem:
 
-Let's be honest, running a server marketplace is a thankless job. You build a beautiful area, and your players proceed to fill it with half-finished dirt huts before disappearing for six months. You, the benevolent server owner, are left to clean up the architectural graveyard.
+Are you tired of your players' chaotic, unregulated commerce? Do you look at your server's economy and think, "This needs more soul-crushing bureaucracy and landlord-style control"? Do you believe the concept of a "free market" is something that happens on other, less organized servers? Welcome home.
 
-No more.
+ZeMarketSystem is for the server admin who sees a beautiful, open field and thinks, "I could make a fortune here by carving this up into tiny, rentable plots and enforcing strict building codes." This plugin lets you do what vanilla Minecraft is too idealistic to consider: create and manage designated market zones where players can rent shops, but only under your watchful, all-powerful gaze.
 
-ZeMarketPlugin is the cold, calculating, automated capitalist your server deserves. It's a hands-off management system that handles the buying, the protecting, and most importantly, the evicting, so you don't have to. Set it up, and watch the glorious churn of commerce manage itself.
-
-How Does This Glorious Dystopia Work?
-It's beautifully simple. You, the admin, define a large plot of land using a WorldGuard region. The plugin then swoops in and meticulously carves that land into a perfect grid of tiny, identical plots, separated by paths of a size you dictate.
-
-Players can then pay a one-time fee to claim an empty plot. It's theirs. They can build, they can sell, and no one else can touch their stuff. But, if they don't log in for a configurable amount of time, the plugin will mercilessly evict them, wipe the plot clean, and put it back on the market.
-
-Simple. Efficient. Unforgiving.
+What is this Capitalist Contraption?
+Forget the anarchy of players building shoddy little stalls wherever they please. ZeMarketSystem allows you to designate any massive area as an official "Market Region." Inside this glorious monument to central planning, you can then create smaller, rentable "Shop Plots." It's clean, it's orderly, and it's the most efficient way to give your players the illusion of economic freedom while ensuring you hold all the cards.
 
 Features
-Automatic Plot Generation
-Stop painstakingly marking out 5x5 plots by hand. Just give the plugin a giant rectangle and watch it create a perfect, soulless grid of commercial opportunity.
+God-Tier Zoning Control: Create massive, protected Market Regions where non-OP players can't even place a torch without permission. It's your world; they just live in it.
 
-Ruthless Inactivity Kicker
-The plugin's main feature. It keeps track of when players were last online. If someone exceeds the expiration date, their plot is automatically unclaimed and reset. Their junk is gone. The plot is pristine. The market remains beautiful. No more player-made ruins.
+Rentable Micro-Plots: Carve up your regions into tiny shop plots. When created, they are automatically cleared and marked with a sign, ready for the next hopeful entrepreneur.
 
-Hands-Off Administration
-Once you've defined the market regions and set the price, your work is done. Sit back, relax, and let the unfeeling logic of the plugin handle the rest.
+A Timed Lease on Life: Players can rent a shop for 30 days. The sign automatically updates with their name and the terrifying countdown of their remaining lease. They can renew it by clicking the sign again, prolonging the inevitable.
 
-Vault Integration
-Because the only thing better than giving players a shop is making them pay for it first. This plugin hooks directly into your server's economy.
+The Automatic Eviction Service: When a player's 30-day lease expires, our automated system ruthlessly purges their belongings from the plot, resets the area, and puts the "For Sale" sign back up. No mess, no fuss, just cold, efficient turnover.
 
-Plot Protection
-Naturally, only the owner of a plot can build or break blocks on it. This prevents theft, griefing, and unauthorized interior decorating.
+Iron-Clad Protection: The system protects not only the regions and plots but also the signs and the very stone blocks they stand on. Because nothing is sacred, but property lines are.
 
-A Player's Guide to Surviving the Market
+Simple (ish) Commands: A handful of commands is all that separates you from becoming a real estate tycoon. We even included a /yes and /no system so players feel like they have a choice.
 
-/market claim	Your one-time payment to enter the glorious world of retail.
+How to Become a Real Estate Mogul (A User Guide)
+Establishing your economic empire is a multi-step process that asserts your dominance at every stage.
 
-/market unclaim	For when you realize running a shop is actual work. No refunds.
+Define Your Territory. First, you must create a Market Region. Go to one corner and type /market region pos1. Then, go to the opposite corner and type /market region pos2. You have now claimed this land.
 
-/market home	Can't remember which of the 100 identical plots is yours? Use this.
+Give It a Bureaucratic Name. Type /market region create <region_name>. Call it something intimidating like Trade_District_Alpha.
 
-/market info	Check who owns the plot you're currently loitering on.
+Create the Tenements. Now, go inside your new region. Find a spot for a small shop. Type /market shop pos1 at one corner and /market shop pos2 at the other.
 
-/market help	In case you forget these four simple commands.
+Finalize the Plot. Type /market shop create. The plugin will instantly flatten the area and place a sign on a stone block, a silent testament to your power. The plot is now ready to generate revenue.
 
-The Admin's Rulebook
-Permission: market.admin
+Watch the Peasants Toil. Players can now walk up to the sign, right-click it, and type /yes to begin their 30-day journey of commerce. They are limited to one shop, because we're not monsters.
 
-/market define <name> <region>	Tell the machine which WorldGuard region to convert into tiny boxes of commerce.
+The Sacred Texts (Commands)
+Permission: All commands require OP status. Because letting players manage their own market would defeat the entire purpose.
 
-/market delete <name>	Deletes a market definition. Does not automatically fire everyone.
+Command	Description
 
-/market setprice <price>	Decide how much it costs to live the dream.
+/market region pos1	Sets the first corner of your massive, overarching market region.
 
-/market setexpire <days>	Set the official "you've been gone too long, you're evicted" timer.
+/market region pos2	Sets the second corner.
 
-/market reload	Force the plugin to re-read its configuration files.
+/market region create <name>	Finalizes the region and gives it a name.
 
-Dependencies (Don't Skip This Part)
+/market region delete <name>	Erases the region and, satisfyingly, all shops within it.
 
-This plugin has no soul, but it does have dependencies. You absolutely need the following installed and working for this plugin to function:
+/market shop pos1	Sets the first corner of a tiny, rentable plot inside a region.
 
-Vault: For handling all the money.
+/market shop pos2	Sets the second corner of that plot.
 
-An Economy Plugin: Any plugin that hooks into Vault (like EssentialsX, iConomy, etc.).
+/market shop create	Clears the plot and makes it available for rent.
 
-WorldGuard: For defining the market regions. The plugin doesn't work without it.
+/market shop delete	Deletes the specific shop plot you are currently standing in.
 
-Installation:
+/market help	Reminds you of all the powerful commands at your disposal.
 
-Make sure you have all the dependencies installed.
+The commands /yes and /no are available to all players when prompted to rent a shop.
 
-Download the latest ZeMarketPlugin.jar from the Releases page.
+Installation (The Boring But Necessary Part)
+
+Download the latest ZeMarketSystem.jar from the Releases page.
 
 Place the .jar file into your server's /plugins directory.
 
-Restart the server.
+Restart your server.
+
+If your server doesn't burst into flames, you've likely succeeded. The plugin will generate marketregions.yml and marketshops.yml to meticulously track every detail of your economic empire.
 
 Use the commands above to configure your automated market empire. If it works, you did it right. If not, you probably missed step 1.
